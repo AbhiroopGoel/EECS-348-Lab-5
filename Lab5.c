@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MAX_MONTHS 12
 
@@ -32,22 +33,25 @@ void printSalesReport(struct SalesData sales[MAX_MONTHS]) {
 
 void printSummaryReport(struct SalesData sales[MAX_MONTHS]) {
     double minSales = sales[0].sales, maxSales = sales[0].sales, totalSales = 0;
+    int minIndex = 0, maxIndex = 0;
 
     for (int i = 0; i < MAX_MONTHS; ++i) {
         if (sales[i].sales < minSales) {
             minSales = sales[i].sales;
+            minIndex = i;
         }
 
         if (sales[i].sales > maxSales) {
             maxSales = sales[i].sales;
+            maxIndex = i;
         }
 
         totalSales += sales[i].sales;
     }
 
     printf("Sales summary:\n");
-    printf("Minimum sales: $%.2f (%s)\n", minSales, sales[0].month);
-    printf("Maximum sales: $%.2f (%s)\n", maxSales, sales[MAX_MONTHS - 1].month);
+    printf("Minimum sales: $%.2f (%s)\n", minSales, sales[minIndex].month);
+    printf("Maximum sales: $%.2f (%s)\n", maxSales, sales[maxIndex].month);
     printf("Average sales: $%.2f\n\n", totalSales / MAX_MONTHS);
 }
 
@@ -90,16 +94,32 @@ void printSortedSalesReport(struct SalesData sales[MAX_MONTHS]) {
     printf("\n");
 }
 
+void readSalesDataFromFile(struct SalesData sales[MAX_MONTHS], const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: Could not open file %s\n", filename);
+        exit(1);
+    }
+
+    double salesArray[MAX_MONTHS];
+    for (int i = 0; i < MAX_MONTHS; ++i) {
+        fscanf(file, "%lf", &salesArray[i]);
+    }
+
+    fclose(file);
+    initializeSalesData(sales, salesArray);
+}
+
 int main() {
     struct SalesData sales[MAX_MONTHS];
+    char filename[100];
 
-    // Input sales data as an array of digits
-    const double salesArray[MAX_MONTHS] = {
-        23458.01, 40112.00, 56011.85, 37820.88, 37904.67, 60200.22,
-        72400.31, 56210.89, 67230.84, 68233.12, 80950.34, 95225.22
-    };
+    // Ask the user to provide the input file name
+    printf("Enter the input file name: ");
+    scanf("%s", filename);
 
-    initializeSalesData(sales, salesArray);
+    // Read sales data from file
+    readSalesDataFromFile(sales, filename);
 
     printSalesReport(sales);
     printSummaryReport(sales);
